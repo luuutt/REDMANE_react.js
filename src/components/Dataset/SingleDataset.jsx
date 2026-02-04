@@ -136,6 +136,7 @@ export default function SingleDataset() {
   const [summaryFiles, setSummaryFiles] = useState([]);
   const [readmeFiles, setReadmeFiles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [datasetUrls, setDatasetUrls] = useState([]);
 
   // Fetch dataset from backend
   React.useEffect(() => {
@@ -168,9 +169,38 @@ export default function SingleDataset() {
         setLoading(false);
       }
     };
+
+    const fetchExternalLinks = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/${datasetId}/external-links`);
+        if (response.ok) {
+          const linksData = await response.json();
+          // Transform API response to match display format
+          const urls = linksData.links.map((link) => ({
+            key: link.key,
+            url: link.url,
+            label: formatUrlLabel(link.key)
+          }));
+          setDatasetUrls(urls);
+        }
+      } catch (err) {
+        console.warn("Error fetching external links:", err);
+      }
+    };
   
     fetchDataset();
+    fetchExternalLinks();
   }, [datasetId]);
+
+  // Helper function to format URL key into readable label
+  const formatUrlLabel = (key) => {
+    // Remove 'url_' prefix and convert underscores to spaces, capitalize words
+    return key
+      .replace(/^url_/, '')
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
   
   const toggleDrawer = () => {
     setOpen(!open);
@@ -477,15 +507,31 @@ export default function SingleDataset() {
                         <Button variant="outlined" sx={{ mt: 1 }} onClick={handleCopyR}>WEHI RStudio</Button>
                         <Divider sx={{ my: 2 }} />
 
-                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Data Portals</Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Related Links</Typography>
 
-                        {/* Link to Omero data portal - the '2' in the link is the project ID in Omero */}
-                        {/* This is for example to show how it links to Omero only, TDE0001 actually uses cBioPortal since it's genomic data. */}
-                        <Tooltip title="Omero">
-                          <Button variant="outlined" sx={{ mr: 2, mt: 1 }} component={Link} href="http://118.138.242.23:4080/webclient/?show=dataset-2" target="_blank">
-                            Omero
-                          </Button>
-                        </Tooltip>
+                        {/* Dynamic URL buttons based on database configuration */}
+                        {datasetUrls && datasetUrls.length > 0 ? (
+                          <Box sx={{ mt: 1 }}>
+                            {datasetUrls.map((urlItem) => (
+                              <Tooltip key={urlItem.key} title={urlItem.url}>
+                                <Button 
+                                  variant="outlined" 
+                                  sx={{ mr: 1, mb: 1 }} 
+                                  component={Link} 
+                                  href={urlItem.url} 
+                                  target="_blank"
+                                  size="small"
+                                >
+                                  {urlItem.label}
+                                </Button>
+                              </Tooltip>
+                            ))}
+                          </Box>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                            No links configured
+                          </Typography>
+                        )}
                         <Divider sx={{ my: 2 }} />
 
                         <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Other views</Typography>
