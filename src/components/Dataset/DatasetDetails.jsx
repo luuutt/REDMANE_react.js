@@ -538,7 +538,7 @@ export default function DatasetDetails() {
                         <Button variant="outlined" sx={{ mt: 1 }} onClick={handleCopyR}>WEHI RStudio</Button>
                         <Divider sx={{ my: 2 }} />
 
-                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Related Links</Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Data Portals</Typography>
 
                         {/* Dynamic URL buttons based on database configuration */}
                         {datasetUrls && datasetUrls.length > 0 ? (
